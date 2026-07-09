@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>안전공학과 AI 챗봇</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --main: #2563eb;
+      --main-dark: #1d4ed8;
+      --green: #0f766e;
+      --yellow: #f59e0b;
+      --text: #172033;
+      --muted: #64748b;
+      --line: #cfe0ff;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", Arial, sans-serif;
+      background:
+        radial-gradient(circle at 12% 10%, rgba(37, 99, 235, 0.24), transparent 30%),
+        radial-gradient(circle at 88% 15%, rgba(245, 158, 11, 0.24), transparent 28%),
+        radial-gradient(circle at 75% 92%, rgba(15, 118, 110, 0.22), transparent 30%),
+        linear-gradient(135deg, #eff6ff, #f8fafc 50%, #fff7ed);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      color: var(--text);
+    }
+
+    .app {
+      width: min(1060px, 100%);
+      height: min(760px, calc(100vh - 48px));
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 18px;
+    }
+
+    .side, .chat {
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255,255,255,0.82);
+      border-radius: 28px;
+      box-shadow: 0 24px 70px rgba(15, 23, 42, 0.15);
+      overflow: hidden;
+    }
+
+    .side {
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #2563eb, #0f766e);
+      color: white;
+      display: grid;
+      place-items: center;
+      font-size: 27px;
+      box-shadow: 0 12px 28px rgba(37, 99, 235, 0.28);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -0.5px;
+    }
+
+    .sub {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.76);
+      border-radius: 20px;
+      padding: 15px;
+    }
+
+    .panel-title {
+      margin: 0 0 9px;
+      font-size: 14px;
+      font-weight: 800;
+      color: #1e3a8a;
+    }
+
+    .guide {
+      margin: 0;
+      padding-left: 18px;
+      color: #475569;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .file-label {
+      display: block;
+      border: 1.5px dashed #93c5fd;
+      border-radius: 16px;
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      color: #1e3a8a;
+      background: #eff6ff;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .file-label:hover { background: #dbeafe; }
+    input[type="file"] { display: none; }
+
+    .status {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+      word-break: keep-all;
+    }
+
+    .reset {
+      border: none;
+      background: transparent;
+      color: #1e40af;
+      cursor: pointer;
+      font-size: 12px;
+      text-decoration: underline;
+      padding: 0;
+      margin-top: 10px;
+    }
+
+    .question-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: auto;
+      padding-right: 3px;
+    }
+
+    .q-btn {
+      border: 1px solid #bfdbfe;
+      background: #f8fbff;
+      color: #1e3a8a;
+      border-radius: 14px;
+      padding: 10px 12px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1.35;
+      transition: 0.16s;
+    }
+
+    .q-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.12);
+      background: #eff6ff;
+    }
+
+    .chat {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-header {
+      padding: 18px 22px;
+      background: linear-gradient(135deg, #1d4ed8, #0f766e);
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .chat-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.22);
+      display: grid;
+      place-items: center;
+      font-size: 25px;
+    }
+
+    .chat-title h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .chat-title p {
+      margin: 4px 0 0;
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .badge {
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.2);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .chat-box {
+      flex: 1;
+      padding: 22px;
+      overflow-y: auto;
+      background:
+        linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75)),
+        repeating-linear-gradient(135deg, #eff6ff 0 14px, #ffffff 14px 28px);
+    }
+
+    .message {
+      display: flex;
+      margin-bottom: 14px;
+      animation: pop 0.18s ease-out;
+    }
+
+    .message.user { justify-content: flex-end; }
+    .message.bot { justify-content: flex-start; }
+
+    .bubble {
+      max-width: min(76%, 540px);
+      padding: 13px 15px;
+      border-radius: 19px;
+      font-size: 14px;
+      line-height: 1.55;
+      box-shadow: 0 8px 18px rgba(31, 41, 55, 0.07);
+      white-space: pre-wrap;
+    }
+
+    .bot .bubble {
+      background: white;
+      color: var(--text);
+      border: 1px solid #dbeafe;
+      border-bottom-left-radius: 7px;
+    }
+
+    .user .bubble {
+      background: #2563eb;
+      color: white;
+      border-bottom-right-radius: 7px;
+    }
+
+    .meta {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .input-area {
+      padding: 16px;
+      background: white;
+      border-top: 1px solid #dbeafe;
+      display: flex;
+      gap: 10px;
+    }
+
+    .input-area input {
+      flex: 1;
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      padding: 14px 16px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .input-area input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+
+    .send {
+      border: none;
+      border-radius: 999px;
+      background: #2563eb;
+      color: white;
+      padding: 0 20px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(37, 99, 235, 0.24);
+    }
+
+    .send:hover { background: #1d4ed8; }
+
+    .notice {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: #fff7ed;
+      color: #92400e;
+      font-size: 12px;
+      line-height: 1.45;
+      border: 1px solid #fed7aa;
+    }
+
+    @keyframes pop {
+      from { opacity: 0; transform: translateY(4px) scale(0.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @media (max-width: 820px) {
+      body { padding: 0; }
+
+      .app {
+        height: 100vh;
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+
+      .side { display: none; }
+      .chat { border-radius: 0; }
+      .bubble { max-width: 86%; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <aside class="side">
+      <div class="logo">
+        <div class="logo-icon">🦺</div>
+        <div>
+          <h1>안전공학과 챗봇</h1>
+          <p class="sub">CSV 질문/답변 데이터를 불러와 답변하는 전공 소개 챗봇</p>
+        </div>
+      </div>
+
+      <section class="panel">
+        <p class="panel-title">CSV 형식</p>
+        <ol class="guide">
+          <li>첫 줄은 <b>question,answer</b></li>
+          <li>질문 10개와 답변 10개 작성</li>
+          <li>CSV를 업로드하면 즉시 반영</li>
+        </ol>
+        <div class="notice">실제 법령·자격증·채용 기준은 바뀔 수 있으므로 공식 자료 확인이 필요해요.</div>
+      </section>
+
+      <section class="panel">
+        <p class="panel-title">CSV 불러오기</p>
+        <label class="file-label" for="csvFile">내 CSV 파일 선택하기</label>
+        <input id="csvFile" type="file" accept=".csv,text/csv" />
+        <div class="status" id="csvStatus">기본 안전공학 CSV 10개가 적용되어 있어요.</div>
+        <button class="reset" onclick="resetDefault()">기본 CSV로 되돌리기</button>
+      </section>
+
+      <section class="panel" style="min-height: 0; flex: 1; display: flex; flex-direction: column;">
+        <p class="panel-title">예시 질문</p>
+        <div class="question-list" id="questionList"></div>
+      </section>
+    </aside>
+
+    <section class="chat">
+      <header class="chat-header">
+        <div class="chat-title">
+          <div class="avatar">👷‍♀️</div>
+          <div>
+            <h2>Safety Engineering AI</h2>
+            <p>안전공학과 전공 질문 답변 챗봇</p>
+          </div>
+        </div>
+        <div class="badge" id="countBadge">10개 답변 학습됨</div>
+      </header>
+
+      <div class="chat-box" id="chatBox"></div>
+
+      <div class="input-area">
+        <input id="userInput" type="text" placeholder="예: 위험성평가가 뭐야?" onkeydown="handleKey(event)" />
+        <button class="send" onclick="sendMessage()">전송</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const DEFAULT_DATA = [{"question": "안전공학과는 무엇을 배우는 학과야?", "answer": "안전공학과는 산업현장, 건설현장, 화학공정, 전기설비, 화재 등에서 발생할 수 있는 위험을 미리 분석하고 사고를 예방하는 방법을 배우는 학과예요. 쉽게 말해 사람이 다치지 않도록 위험을 찾고 줄이는 전공이에요."}, {"question": "안전공학과를 졸업하면 어떤 직업을 가질 수 있어?", "answer": "산업안전관리자, 건설안전관리자, 소방·방재 분야, 위험물 안전관리자, 공공기관 안전직, 제조업 안전보건 담당자 등으로 진출할 수 있어요. 구체적인 채용 조건이나 자격증 기준은 시기마다 달라질 수 있어서 공식 공고 확인이 필요해요."}, {"question": "산업재해란 무엇이야?", "answer": "산업재해는 근로자가 일을 하다가 다치거나 질병에 걸리거나 사망하는 사고를 말해요. 사고 원인을 분석하고 같은 사고가 반복되지 않도록 예방대책을 세우는 것이 중요해요."}, {"question": "위험성평가는 왜 중요한 거야?", "answer": "위험성평가는 사고가 발생하기 전에 위험요인을 찾아내고, 위험의 크기를 판단한 뒤, 위험을 줄이기 위한 대책을 세우는 과정이에요. 안전공학에서 사고 예방의 핵심이라고 볼 수 있어요."}, {"question": "4M 분석이 뭐야?", "answer": "4M 분석은 사고 원인을 Man, Machine, Media, Management 네 가지로 나누어 분석하는 방법이에요. 사람의 행동, 기계·설비, 작업환경, 관리체계 중 어디에서 문제가 생겼는지 정리할 때 사용해요."}, {"question": "안전관리자는 어떤 일을 해?", "answer": "안전관리자는 현장의 위험요인을 점검하고, 안전교육을 실시하며, 사고 예방 대책을 세우는 역할을 해요. 작업자가 안전하게 일할 수 있도록 작업환경과 절차를 관리하는 직무예요."}, {"question": "보호구는 왜 꼭 착용해야 해?", "answer": "보호구는 사고가 발생했을 때 신체를 보호하는 마지막 방어수단이에요. 안전모, 보안경, 안전화, 방진마스크, 귀마개 등은 작업환경에 맞게 올바르게 착용해야 해요."}, {"question": "화재 사고를 예방하려면 어떻게 해야 해?", "answer": "화재 사고를 예방하려면 가연물 관리, 전기설비 점검, 소화기 비치, 피난로 확보, 화재 예방 교육이 필요해요. 불이 난 뒤 대응하는 것보다 불이 나지 않도록 관리하는 것이 더 중요해요."}, {"question": "전기 안전에서 가장 조심해야 할 점은 뭐야?", "answer": "전기 안전에서는 감전, 누전, 과부하, 합선을 조심해야 해요. 젖은 손으로 전기기기를 만지지 않고, 손상된 전선은 사용하지 않으며, 차단기와 접지 상태를 확인하는 것이 중요해요."}, {"question": "사고가 발생했을 때 가장 먼저 해야 할 일은 뭐야?", "answer": "사고가 발생하면 먼저 자신의 안전을 확보하고, 주변 사람에게 사고 사실을 알린 뒤, 필요한 경우 119나 관리자에게 즉시 신고해야 해요. 이후에는 추가 사고를 막기 위해 현장을 무리하게 건드리지 않는 것이 좋아요."}];
+
+    let qaData = [];
+
+    const chatBox = document.getElementById("chatBox");
+    const userInput = document.getElementById("userInput");
+    const questionList = document.getElementById("questionList");
+    const csvStatus = document.getElementById("csvStatus");
+    const countBadge = document.getElementById("countBadge");
+    const csvFile = document.getElementById("csvFile");
+
+    function setData(data, sourceName = "기본 데이터") {
+      qaData = data.filter(item => item.question && item.answer);
+      renderQuestionList();
+      countBadge.textContent = `${qaData.length}개 답변 학습됨`;
+      csvStatus.textContent = `${sourceName}에서 ${qaData.length}개 질문/답변을 불러왔어요.`;
+    }
+
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let value = "";
+      let insideQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
+
+        if (char === '"' && insideQuotes && next === '"') {
+          value += '"';
+          i++;
+        } else if (char === '"') {
+          insideQuotes = !insideQuotes;
+        } else if (char === "," && !insideQuotes) {
+          row.push(value);
+          value = "";
+        } else if ((char === "\n" || char === "\r") && !insideQuotes) {
+          if (value || row.length) {
+            row.push(value);
+            rows.push(row);
+            row = [];
+            value = "";
+          }
+          if (char === "\r" && next === "\n") i++;
+        } else {
+          value += char;
+        }
+      }
+
+      if (value || row.length) {
+        row.push(value);
+        rows.push(row);
+      }
+
+      return rows;
+    }
+
+    function loadCSV(text, sourceName = "CSV") {
+      const rows = parseCSV(text.trim());
+      if (rows.length < 2) throw new Error("CSV에 데이터가 부족해요.");
+
+      const header = rows[0].map(h => h.trim().toLowerCase());
+      const qIndex = header.indexOf("question");
+      const aIndex = header.indexOf("answer");
+
+      if (qIndex === -1 || aIndex === -1) {
+        throw new Error("첫 줄에 question,answer 컬럼이 필요해요.");
+      }
+
+      const data = rows.slice(1).map(row => ({
+        question: (row[qIndex] || "").trim(),
+        answer: (row[aIndex] || "").trim()
+      })).filter(item => item.question && item.answer);
+
+      if (data.length === 0) throw new Error("읽을 수 있는 질문/답변이 없어요.");
+      setData(data, sourceName);
+    }
+
+    function renderQuestionList() {
+      questionList.innerHTML = "";
+
+      qaData.forEach(item => {
+        const btn = document.createElement("button");
+        btn.className = "q-btn";
+        btn.textContent = item.question;
+        btn.onclick = () => askPreset(item.question);
+        questionList.appendChild(btn);
+      });
+    }
+
+    function tokenize(text) {
+      return text
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}\s]/gu, " ")
+        .split(/\s+/)
+        .filter(Boolean);
+    }
+
+    function similarityScore(input, question) {
+      const inputText = input.toLowerCase().trim();
+      const questionText = question.toLowerCase().trim();
+
+      if (inputText === questionText) return 100;
+      if (questionText.includes(inputText) || inputText.includes(questionText)) return 80;
+
+      const inputTokens = tokenize(inputText);
+      const questionTokens = tokenize(questionText);
+      let score = 0;
+
+      inputTokens.forEach(token => {
+        if (questionTokens.includes(token)) score += 12;
+        else if (questionText.includes(token)) score += 6;
+      });
+
+      const compactInput = inputText.replace(/\s/g, "");
+      const compactQuestion = questionText.replace(/\s/g, "");
+
+      if (compactQuestion.includes(compactInput) || compactInput.includes(compactQuestion)) {
+        score += 35;
+      }
+
+      return score;
+    }
+
+    function findAnswer(input) {
+      let best = null;
+      let bestScore = -1;
+
+      qaData.forEach(item => {
+        const score = similarityScore(input, item.question);
+        if (score > bestScore) {
+          bestScore = score;
+          best = item;
+        }
+      });
+
+      if (!best || bestScore < 12) {
+        const examples = qaData.slice(0, 5).map(item => `• ${item.question}`).join("\n");
+        return {
+          answer: `아직 이 질문과 정확히 맞는 답변을 CSV에서 찾지 못했어요.\n\n아래 질문 중 하나처럼 입력해보세요.\n${examples}`,
+          matched: "매칭 실패"
+        };
+      }
+
+      return {
+        answer: best.answer,
+        matched: `CSV 매칭 질문: ${best.question}`
+      };
+    }
+
+    function addMessage(text, sender, meta = "") {
+      const msg = document.createElement("div");
+      msg.className = `message ${sender}`;
+
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.textContent = text;
+
+      if (meta) {
+        const metaEl = document.createElement("div");
+        metaEl.className = "meta";
+        metaEl.textContent = meta;
+        bubble.appendChild(metaEl);
+      }
+
+      msg.appendChild(bubble);
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function sendMessage() {
+      const text = userInput.value.trim();
+      if (!text) return;
+
+      addMessage(text, "user");
+      userInput.value = "";
+
+      setTimeout(() => {
+        const result = findAnswer(text);
+        addMessage(result.answer, "bot", result.matched);
+      }, 300);
+    }
+
+    function askPreset(question) {
+      userInput.value = question;
+      sendMessage();
+    }
+
+    function handleKey(event) {
+      if (event.key === "Enter") {
+        sendMessage();
+      }
+    }
+
+    function resetDefault() {
+      setData(DEFAULT_DATA, "기본 데이터");
+      addMessage("기본 안전공학 데이터로 다시 불러왔어요.", "bot");
+    }
+
+    csvFile.addEventListener("change", event => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = e => {
+        try {
+          loadCSV(e.target.result, file.name);
+          addMessage(`${file.name} 파일을 불러왔어요. 이제 CSV 질문을 입력해보세요.`, "bot");
+        } catch (error) {
+          csvStatus.textContent = "CSV를 불러오지 못했어요: " + error.message;
+          addMessage("CSV 형식이 맞지 않아요. 첫 줄은 question,answer 로 작성해주세요.", "bot");
+        }
+      };
+
+      reader.readAsText(file, "utf-8");
+    });
+
+    setData(DEFAULT_DATA, "기본 데이터");
+
+    addMessage(
+      "안녕하세요! 저는 안전공학과 질문에 답하는 CSV 기반 챗봇이에요.\n왼쪽 예시 질문을 누르거나 직접 질문을 입력해보세요 🦺",
+      "bot"
+    );
+
+    fetch("safety_engineering_qa_10.csv")
+      .then(response => {
+        if (!response.ok) throw new Error("외부 CSV 없음");
+        return response.text();
+      })
+      .then(text => loadCSV(text, "safety_engineering_qa_10.csv"))
+      .catch(() => {});
+  </script>
+</body>
+</html>
